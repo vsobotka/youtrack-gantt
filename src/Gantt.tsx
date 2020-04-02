@@ -6,9 +6,11 @@ interface IState {
   columns: IColumns
 }
 
-class Gantt extends React.Component<{}, IState> {
-  constructor() {
-    super({})
+interface IProps {}
+
+class Gantt extends React.Component<IProps, IState> {
+  constructor(props: IProps) {
+    super(props)
     this.state = {
       rows: [],
       columns: []

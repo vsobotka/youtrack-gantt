@@ -1,28 +1,28 @@
-import React from 'react';
+import React from "react";
 import Chart from "react-google-charts";
 
 interface IState {
-  rows: IRows,
-  columns: IColumns
+  rows: IRows;
+  columns: IColumns;
 }
 
 interface IProps {}
 
 class Gantt extends React.Component<IProps, IState> {
   constructor(props: IProps) {
-    super(props)
+    super(props);
     this.state = {
       rows: [],
       columns: []
-    }
-    this.handleChange = this.handleChange.bind(this)
+    };
+    this.handleChange = this.handleChange.bind(this);
   }
 
   handleChange() {
     this.setState({
       rows: rows,
       columns: columns
-    })
+    });
   }
 
   render() {
@@ -41,8 +41,8 @@ class Gantt extends React.Component<IProps, IState> {
 }
 
 interface IColumn {
-  type: string,
-  label: string
+  type: string;
+  label: string;
 }
 interface IColumns extends Array<IColumn> {}
 

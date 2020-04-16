@@ -1,9 +1,11 @@
 import React from "react";
 import Chart from "react-google-charts";
+import { Requirement } from "./react-app-env";
 
 interface IState {
   rows: IRows;
   columns: IColumns;
+  height: number;
 }
 
 interface IProps {}
@@ -13,29 +15,54 @@ class Gantt extends React.Component<IProps, IState> {
     super(props);
     this.state = {
       rows: [],
-      columns: []
+      columns: columns,
+      height: 0,
     };
-    this.handleChange = this.handleChange.bind(this);
   }
 
-  handleChange() {
-    this.setState({
-      rows: rows,
-      columns: columns
-    });
+  componentDidMount() {
+    fetch("http://localhost:8000/currentRelease")
+      .then((response) => response.json())
+      .then((reqs: Array<Requirement>) => {
+        const newRows = reqs.map(
+          (req: Requirement): IRow => {
+            const spent = req["Spent time (Duration)"]
+              ? Number(req["Spent time (Duration)"])
+              : 0;
+            const est = req["Current Rough Estimate"]
+              ? Number(req["Current Rough Estimate"])
+              : 100;
+            return [
+              req.id,
+              req.summary,
+              spent / est > 1 ? "Overbudget" : req.State,
+              null,
+              null,
+              daysToMilliseconds(est),
+              (100 * spent) / est,
+              null,
+            ];
+          }
+        );
+
+        this.setState({
+          rows: newRows,
+          height: newRows.length * 42,
+        });
+      });
   }
 
   render() {
     return (
-      <div className="App">
-        <Chart
-          chartType="Gantt"
-          data={[columns, ...rows]}
-          width="100%"
-          height="50%"
-          legendToggle
-        />
-      </div>
+      <Chart
+        chartType="Gantt"
+        data={[this.state.columns, ...this.state.rows]}
+        width="100%"
+        options={{
+          height: this.state.height,
+        }}
+        legendToggle
+      />
     );
   }
 }
@@ -49,14 +76,16 @@ interface IColumns extends Array<IColumn> {}
 const columns: IColumns = [
   { type: "string", label: "Task ID" },
   { type: "string", label: "Task Name" },
+  { type: "string", label: "Resource" },
   { type: "date", label: "Start Date" },
   { type: "date", label: "End Date" },
   { type: "number", label: "Duration" },
   { type: "number", label: "Percent Complete" },
-  { type: "string", label: "Dependencies" }
+  { type: "string", label: "Dependencies" },
 ];
 
-interface IRows extends Array<Array<string | number | Date | null>> {}
+interface IRow extends Array<string | number | Date | null> {}
+interface IRows extends Array<IRow> {}
 
 const rows: IRows = [
   [
@@ -66,7 +95,7 @@ const rows: IRows = [
     new Date(2015, 0, 5),
     null,
     100,
-    null
+    null,
   ],
   [
     "Write",
@@ -75,7 +104,7 @@ const rows: IRows = [
     new Date(2015, 0, 9),
     daysToMilliseconds(3),
     25,
-    "Research,Outline"
+    "Research,Outline",
   ],
   [
     "Cite",
@@ -84,7 +113,7 @@ const rows: IRows = [
     new Date(2015, 0, 7),
     daysToMilliseconds(1),
     20,
-    "Research"
+    "Research",
   ],
   [
     "Complete",
@@ -93,7 +122,7 @@ const rows: IRows = [
     new Date(2015, 0, 10),
     daysToMilliseconds(1),
     0,
-    "Cite,Write"
+    "Cite,Write",
   ],
   [
     "Outline",
@@ -102,8 +131,8 @@ const rows: IRows = [
     new Date(2015, 0, 6),
     daysToMilliseconds(1),
     100,
-    "Research"
-  ]
+    "Research",
+  ],
 ];
 
 function daysToMilliseconds(days: number) {
